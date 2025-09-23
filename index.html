@@ -12,18 +12,44 @@
     nav a:hover { background: #1e3d7b; }
     section { padding: 20px; }
     h2 { color: #2c4a9a; }
-    .card { background: white; padding: 15px; margin: 10px 0;
-      border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .card {
+      background: white; padding: 15px; margin: 10px 0;
+      border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
     label { font-weight: bold; }
-    input, select, textarea { width: 100%; padding: 8px; margin: 5px 0 15px;
-      border: 1px solid #ccc; border-radius: 5px; }
-    button { background: #2c4a9a; color: white; padding: 10px 20px;
-      border: none; border-radius: 5px; cursor: pointer; }
+    input, select, textarea { width: 100%; padding: 8px; margin: 5px 0 15px; border: 1px solid #ccc; border-radius: 5px; }
+    button { background: #2c4a9a; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
     button:hover { background: #1e3d7b; }
     .hidden { display: none; }
+
+    /* Notification style */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #28a745;
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      display: none;
+      z-index: 1000;
+    }
+
+    /* Saved complaints */
+    .complaints-list {
+      margin-top: 15px;
+    }
+
+    .complaint-item {
+      background: #f0f0f0; padding: 10px; margin-bottom: 10px; border-radius: 5px;
+    }
+
+    .complaint-item strong { display: block; margin-bottom: 5px; }
   </style>
 </head>
 <body>
+
   <header>
     <h1>Election Monitoring System</h1>
     <p>Ensuring Transparency, Trust, and Fair Elections</p>
@@ -85,7 +111,7 @@
 
       <button type="submit">Submit Complaint</button>
     </form>
-    <p id="complaintMsg"></p>
+    <div class="complaints-list" id="complaintsList"></div>
   </section>
 
   <!-- Transparency Hub -->
@@ -117,90 +143,73 @@
     <p id="trackMsg"></p>
   </section>
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+  <!-- Notification -->
+  <div class="notification" id="notification">Complaint submitted successfully!</div>
 
   <script>
-    // ✅ Your Firebase project config
-    const firebaseConfig = {
-      apiKey: "AIzaSyBn3Xhc2dI0syekm2jTokJ1vEKV62ZISwg",
-      authDomain: "election-monitoring-syst-7dd26.firebaseapp.com",
-      projectId: "election-monitoring-syst-7dd26",
-      storageBucket: "election-monitoring-syst-7dd26.appspot.com",
-      messagingSenderId: "631637510605",
-      appId: "1:631637510605:web:85cb9d52a02b58b3ff9c84"
-    };
-
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
     // Section toggle
     function showSection(id) {
       document.querySelectorAll("section").forEach(s => s.classList.add("hidden"));
       document.getElementById(id).classList.remove("hidden");
     }
 
-    // Complaint submission
-    document.getElementById("issueForm").addEventListener("submit", async function(e) {
-      e.preventDefault();
-      let role = document.getElementById("role").value;
-      let issueType = document.getElementById("issueType").value;
-      let details = document.getElementById("details").value;
+    // Load saved complaints
+    let complaints = JSON.parse(localStorage.getItem('complaints')) || [];
+    const complaintsList = document.getElementById('complaintsList');
 
-      try {
-        let docRef = await db.collection("complaints").add({
-          role: role,
-          issueType: issueType,
-          details: details,
-          status: "Pending"
-        });
-        document.getElementById("complaintMsg").innerText =
-          "✅ Complaint submitted. Your ID: " + docRef.id;
-        this.reset();
-      } catch (error) {
-        document.getElementById("complaintMsg").innerText = "❌ Error: " + error.message;
-      }
+    function renderComplaints() {
+      complaintsList.innerHTML = '';
+      complaints.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'complaint-item';
+        div.innerHTML = `<strong>ID: ${c.id} | Role: ${c.role} | Type: ${c.issueType}</strong><p>${c.details}</p>`;
+        complaintsList.appendChild(div);
+      });
+    }
+
+    renderComplaints();
+
+    // Show notification
+    function showNotification(message) {
+      const notification = document.getElementById('notification');
+      notification.innerText = message;
+      notification.style.display = 'block';
+      setTimeout(() => { notification.style.display = 'none'; }, 2000);
+    }
+
+    // Complaint submission
+    document.getElementById("issueForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const role = document.getElementById("role").value;
+      const issueType = document.getElementById("issueType").value;
+      const details = document.getElementById("details").value;
+      const id = "CMP" + Math.floor(Math.random() * 10000);
+
+      const complaint = { id, role, issueType, details };
+      complaints.push(complaint);
+      localStorage.setItem('complaints', JSON.stringify(complaints));
+      renderComplaints();
+      showNotification(`Complaint submitted! ID: ${id}`);
+      this.reset();
     });
 
     // Track complaint
-    async function trackComplaint() {
+    function trackComplaint() {
       let id = document.getElementById("trackId").value;
-      try {
-        let doc = await db.collection("complaints").doc(id).get();
-        if (doc.exists) {
-          document.getElementById("trackMsg").innerText =
-            "📌 Status: " + doc.data().status;
-        } else {
-          document.getElementById("trackMsg").innerText = "❌ Complaint ID not found.";
-        }
-      } catch (error) {
-        document.getElementById("trackMsg").innerText = "❌ Error: " + error.message;
-      }
+      let complaint = complaints.find(c => c.id === id);
+      document.getElementById("trackMsg").innerText = 
+        complaint ? `Status: Pending | Role: ${complaint.role} | Type: ${complaint.issueType}` : "Complaint ID not found.";
     }
 
-    // Voter verification
-    async function verifyVoter() {
+    // Voter verification (mock)
+    function verifyVoter() {
       let voterId = document.getElementById("voterId").value;
       if (!voterId) {
-        document.getElementById("verifyMsg").innerText = "⚠️ Please enter a valid ID.";
-        return;
-      }
-      try {
-        let doc = await db.collection("voters").doc(voterId).get();
-        if (doc.exists) {
-          let voter = doc.data();
-          if (voter.registered === true) {
-            document.getElementById("verifyMsg").innerText = "✅ Voter verified.";
-          } else {
-            document.getElementById("verifyMsg").innerText = "❌ Duplicate/invalid voter.";
-          }
-        } else {
-          document.getElementById("verifyMsg").innerText = "❌ Voter not found.";
-        }
-      } catch (error) {
-        document.getElementById("verifyMsg").innerText = "❌ Error: " + error.message;
+        document.getElementById("verifyMsg").innerText = "Please enter a valid ID.";
+      } else if (voterId === "12345") {
+        document.getElementById("verifyMsg").innerText = "Duplicate voter detected!";
+      } else {
+        document.getElementById("verifyMsg").innerText = "Voter verified successfully.";
       }
     }
   </script>
