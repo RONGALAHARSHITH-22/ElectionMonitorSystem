@@ -8,25 +8,17 @@
     body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f9; }
     header { background: #1e3d7b; color: white; padding: 15px; text-align: center; }
     nav { background: #2c4a9a; display: flex; justify-content: center; }
-    nav a {
-      color: white; padding: 14px 20px; display: inline-block; text-decoration: none;
-    }
+    nav a { color: white; padding: 14px 20px; display: inline-block; text-decoration: none; }
     nav a:hover { background: #1e3d7b; }
     section { padding: 20px; }
     h2 { color: #2c4a9a; }
-    .card {
-      background: white; padding: 15px; margin: 10px 0;
-      border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
+    .card { background: white; padding: 15px; margin: 10px 0;
+      border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     label { font-weight: bold; }
-    input, select, textarea {
-      width: 100%; padding: 8px; margin: 5px 0 15px;
-      border: 1px solid #ccc; border-radius: 5px;
-    }
-    button {
-      background: #2c4a9a; color: white; padding: 10px 20px;
-      border: none; border-radius: 5px; cursor: pointer;
-    }
+    input, select, textarea { width: 100%; padding: 8px; margin: 5px 0 15px;
+      border: 1px solid #ccc; border-radius: 5px; }
+    button { background: #2c4a9a; color: white; padding: 10px 20px;
+      border: none; border-radius: 5px; cursor: pointer; }
     button:hover { background: #1e3d7b; }
     .hidden { display: none; }
   </style>
@@ -125,7 +117,25 @@
     <p id="trackMsg"></p>
   </section>
 
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+
   <script>
+    // ✅ Your Firebase project config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBn3Xhc2dI0syekm2jTokJ1vEKV62ZISwg",
+      authDomain: "election-monitoring-syst-7dd26.firebaseapp.com",
+      projectId: "election-monitoring-syst-7dd26",
+      storageBucket: "election-monitoring-syst-7dd26.appspot.com",
+      messagingSenderId: "631637510605",
+      appId: "1:631637510605:web:85cb9d52a02b58b3ff9c84"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
     // Section toggle
     function showSection(id) {
       document.querySelectorAll("section").forEach(s => s.classList.add("hidden"));
@@ -133,32 +143,64 @@
     }
 
     // Complaint submission
-    document.getElementById("issueForm").addEventListener("submit", function(e) {
+    document.getElementById("issueForm").addEventListener("submit", async function(e) {
       e.preventDefault();
-      let complaintId = "CMP" + Math.floor(Math.random() * 10000);
-      document.getElementById("complaintMsg").innerText = 
-        "Complaint submitted successfully. Your ID: " + complaintId;
-      localStorage.setItem(complaintId, "Pending investigation");
-      this.reset();
+      let role = document.getElementById("role").value;
+      let issueType = document.getElementById("issueType").value;
+      let details = document.getElementById("details").value;
+
+      try {
+        let docRef = await db.collection("complaints").add({
+          role: role,
+          issueType: issueType,
+          details: details,
+          status: "Pending"
+        });
+        document.getElementById("complaintMsg").innerText =
+          "✅ Complaint submitted. Your ID: " + docRef.id;
+        this.reset();
+      } catch (error) {
+        document.getElementById("complaintMsg").innerText = "❌ Error: " + error.message;
+      }
     });
 
     // Track complaint
-    function trackComplaint() {
+    async function trackComplaint() {
       let id = document.getElementById("trackId").value;
-      let status = localStorage.getItem(id);
-      document.getElementById("trackMsg").innerText = 
-        status ? "Status: " + status : "Complaint ID not found.";
+      try {
+        let doc = await db.collection("complaints").doc(id).get();
+        if (doc.exists) {
+          document.getElementById("trackMsg").innerText =
+            "📌 Status: " + doc.data().status;
+        } else {
+          document.getElementById("trackMsg").innerText = "❌ Complaint ID not found.";
+        }
+      } catch (error) {
+        document.getElementById("trackMsg").innerText = "❌ Error: " + error.message;
+      }
     }
 
-    // Voter verification (mock)
-    function verifyVoter() {
+    // Voter verification
+    async function verifyVoter() {
       let voterId = document.getElementById("voterId").value;
       if (!voterId) {
-        document.getElementById("verifyMsg").innerText = "Please enter a valid ID.";
-      } else if (voterId === "12345") {
-        document.getElementById("verifyMsg").innerText = "Duplicate voter detected!";
-      } else {
-        document.getElementById("verifyMsg").innerText = "Voter verified successfully.";
+        document.getElementById("verifyMsg").innerText = "⚠️ Please enter a valid ID.";
+        return;
+      }
+      try {
+        let doc = await db.collection("voters").doc(voterId).get();
+        if (doc.exists) {
+          let voter = doc.data();
+          if (voter.registered === true) {
+            document.getElementById("verifyMsg").innerText = "✅ Voter verified.";
+          } else {
+            document.getElementById("verifyMsg").innerText = "❌ Duplicate/invalid voter.";
+          }
+        } else {
+          document.getElementById("verifyMsg").innerText = "❌ Voter not found.";
+        }
+      } catch (error) {
+        document.getElementById("verifyMsg").innerText = "❌ Error: " + error.message;
       }
     }
   </script>
