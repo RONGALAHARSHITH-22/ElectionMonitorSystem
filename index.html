@@ -37,14 +37,10 @@
     }
 
     /* Saved complaints */
-    .complaints-list {
-      margin-top: 15px;
-    }
-
+    .complaints-list { margin-top: 15px; }
     .complaint-item {
       background: #f0f0f0; padding: 10px; margin-bottom: 10px; border-radius: 5px;
     }
-
     .complaint-item strong { display: block; margin-bottom: 5px; }
   </style>
 </head>
@@ -140,7 +136,8 @@
     <label for="trackId">Enter Complaint ID:</label>
     <input type="text" id="trackId" placeholder="Complaint ID">
     <button onclick="trackComplaint()">Track</button>
-    <p id="trackMsg"></p>
+    <div id="trackMsg"></div>
+    <div class="complaints-list" id="trackComplaints"></div>
   </section>
 
   <!-- Notification -->
@@ -151,6 +148,7 @@
     function showSection(id) {
       document.querySelectorAll("section").forEach(s => s.classList.add("hidden"));
       document.getElementById(id).classList.remove("hidden");
+      if (id === 'track') renderTrackComplaints();
     }
 
     // Load saved complaints
@@ -185,33 +183,54 @@
       const details = document.getElementById("details").value;
       const id = "CMP" + Math.floor(Math.random() * 10000);
 
-      const complaint = { id, role, issueType, details };
+      const complaint = { id, role, issueType, details, status: "Pending" };
       complaints.push(complaint);
       localStorage.setItem('complaints', JSON.stringify(complaints));
+
       renderComplaints();
+      renderTrackComplaints(); // Update track section automatically
       showNotification(`Complaint submitted! ID: ${id}`);
       this.reset();
     });
 
     // Track complaint
     function trackComplaint() {
-      let id = document.getElementById("trackId").value;
+      let id = document.getElementById("trackId").value.trim();
       let complaint = complaints.find(c => c.id === id);
-      document.getElementById("trackMsg").innerText = 
-        complaint ? `Status: Pending | Role: ${complaint.role} | Type: ${complaint.issueType}` : "Complaint ID not found.";
+      const trackMsg = document.getElementById("trackMsg");
+      if (complaint) {
+        trackMsg.innerText = `Status: ${complaint.status} | Role: ${complaint.role} | Type: ${complaint.issueType}`;
+      } else {
+        trackMsg.innerText = "Complaint ID not found or voter ID not working properly.";
+      }
+    }
+
+    function renderTrackComplaints() {
+      const trackList = document.getElementById('trackComplaints');
+      trackList.innerHTML = '';
+      complaints.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'complaint-item';
+        div.innerHTML = `<strong>ID: ${c.id} | Role: ${c.role} | Type: ${c.issueType} | Status: ${c.status}</strong><p>${c.details}</p>`;
+        trackList.appendChild(div);
+      });
     }
 
     // Voter verification (mock)
     function verifyVoter() {
-      let voterId = document.getElementById("voterId").value;
+      let voterId = document.getElementById("voterId").value.trim();
+      const verifyMsg = document.getElementById("verifyMsg");
       if (!voterId) {
-        document.getElementById("verifyMsg").innerText = "Please enter a valid ID.";
+        verifyMsg.innerText = "Please enter a valid ID.";
       } else if (voterId === "12345") {
-        document.getElementById("verifyMsg").innerText = "Duplicate voter detected!";
+        verifyMsg.innerText = "Duplicate voter detected!";
+      } else if (voterId.length < 5) {
+        verifyMsg.innerText = "Voter ID not working properly.";
       } else {
-        document.getElementById("verifyMsg").innerText = "Voter verified successfully.";
+        verifyMsg.innerText = "Voter verified successfully.";
       }
     }
   </script>
+
 </body>
 </html>
