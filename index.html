@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Election Monitoring System</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f9; }
+    header { background: #1e3d7b; color: white; padding: 15px; text-align: center; }
+    nav { background: #2c4a9a; display: flex; justify-content: center; }
+    nav a {
+      color: white; padding: 14px 20px; display: inline-block; text-decoration: none;
+    }
+    nav a:hover { background: #1e3d7b; }
+    section { padding: 20px; }
+    h2 { color: #2c4a9a; }
+    .card {
+      background: white; padding: 15px; margin: 10px 0;
+      border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    label { font-weight: bold; }
+    input, select, textarea {
+      width: 100%; padding: 8px; margin: 5px 0 15px;
+      border: 1px solid #ccc; border-radius: 5px;
+    }
+    button {
+      background: #2c4a9a; color: white; padding: 10px 20px;
+      border: none; border-radius: 5px; cursor: pointer;
+    }
+    button:hover { background: #1e3d7b; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Election Monitoring System</h1>
+    <p>Ensuring Transparency, Trust, and Fair Elections</p>
+  </header>
+
+  <nav>
+    <a href="#" onclick="showSection('dashboard')">Dashboard</a>
+    <a href="#" onclick="showSection('report')">Report Issue</a>
+    <a href="#" onclick="showSection('results')">Transparency Hub</a>
+    <a href="#" onclick="showSection('verify')">Voter Verification</a>
+    <a href="#" onclick="showSection('track')">Track Complaints</a>
+  </nav>
+
+  <!-- Dashboard -->
+  <section id="dashboard" class="card">
+    <h2>Dashboard</h2>
+    <p><strong>Problems Identified:</strong></p>
+    <ul>
+      <li>Fraud or malpractice</li>
+      <li>Misinformation / Fake news</li>
+      <li>Lack of transparency</li>
+      <li>Difficulty reporting issues</li>
+      <li>Duplicate / fraudulent voters</li>
+    </ul>
+    <p><strong>Solutions This System Provides:</strong></p>
+    <ul>
+      <li>Centralized issue reporting & tracking</li>
+      <li>Verified complaint IDs</li>
+      <li>Live results & transparency hub</li>
+      <li>Voter verification tool</li>
+      <li>Digital reporting channels</li>
+    </ul>
+  </section>
+
+  <!-- Report Issue -->
+  <section id="report" class="card hidden">
+    <h2>Report an Election Issue</h2>
+    <form id="issueForm">
+      <label for="role">Your Role:</label>
+      <select id="role" required>
+        <option value="">Select</option>
+        <option>Citizen/Voter</option>
+        <option>Observer</option>
+        <option>Election Official</option>
+      </select>
+
+      <label for="issueType">Issue Type:</label>
+      <select id="issueType" required>
+        <option value="">Select</option>
+        <option>Fraud or Malpractice</option>
+        <option>Misinformation / Fake News</option>
+        <option>Lack of Transparency</option>
+        <option>Duplicate/Invalid Voters</option>
+        <option>Other</option>
+      </select>
+
+      <label for="details">Details:</label>
+      <textarea id="details" rows="4" required></textarea>
+
+      <button type="submit">Submit Complaint</button>
+    </form>
+    <p id="complaintMsg"></p>
+  </section>
+
+  <!-- Transparency Hub -->
+  <section id="results" class="card hidden">
+    <h2>Transparency Hub – Live Results</h2>
+    <p>Mock Data (for demo)</p>
+    <ul>
+      <li>Candidate A – 45%</li>
+      <li>Candidate B – 40%</li>
+      <li>Candidate C – 15%</li>
+    </ul>
+  </section>
+
+  <!-- Voter Verification -->
+  <section id="verify" class="card hidden">
+    <h2>Voter Verification</h2>
+    <label for="voterId">Enter Voter ID:</label>
+    <input type="text" id="voterId" placeholder="Enter your ID">
+    <button onclick="verifyVoter()">Verify</button>
+    <p id="verifyMsg"></p>
+  </section>
+
+  <!-- Track Complaints -->
+  <section id="track" class="card hidden">
+    <h2>Track Your Complaint</h2>
+    <label for="trackId">Enter Complaint ID:</label>
+    <input type="text" id="trackId" placeholder="Complaint ID">
+    <button onclick="trackComplaint()">Track</button>
+    <p id="trackMsg"></p>
+  </section>
+
+  <script>
+    // Section toggle
+    function showSection(id) {
+      document.querySelectorAll("section").forEach(s => s.classList.add("hidden"));
+      document.getElementById(id).classList.remove("hidden");
+    }
+
+    // Complaint submission
+    document.getElementById("issueForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      let complaintId = "CMP" + Math.floor(Math.random() * 10000);
+      document.getElementById("complaintMsg").innerText = 
+        "Complaint submitted successfully. Your ID: " + complaintId;
+      localStorage.setItem(complaintId, "Pending investigation");
+      this.reset();
+    });
+
+    // Track complaint
+    function trackComplaint() {
+      let id = document.getElementById("trackId").value;
+      let status = localStorage.getItem(id);
+      document.getElementById("trackMsg").innerText = 
+        status ? "Status: " + status : "Complaint ID not found.";
+    }
+
+    // Voter verification (mock)
+    function verifyVoter() {
+      let voterId = document.getElementById("voterId").value;
+      if (!voterId) {
+        document.getElementById("verifyMsg").innerText = "Please enter a valid ID.";
+      } else if (voterId === "12345") {
+        document.getElementById("verifyMsg").innerText = "Duplicate voter detected!";
+      } else {
+        document.getElementById("verifyMsg").innerText = "Voter verified successfully.";
+      }
+    }
+  </script>
+</body>
+</html>
