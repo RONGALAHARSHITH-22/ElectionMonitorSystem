@@ -1,0 +1,25 @@
+import React from 'react'
+
+export default function Dashboard() {
+  return (
+    <section id="dashboard" className="card">
+      <h2>Dashboard</h2>
+      <p><strong>Problems Identified:</strong></p>
+      <ul>
+        <li>Fraud or malpractice</li>
+        <li>Misinformation / Fake news</li>
+        <li>Lack of transparency</li>
+        <li>Difficulty reporting issues</li>
+        <li>Duplicate / fraudulent voters</li>
+      </ul>
+      <p><strong>Solutions This System Provides:</strong></p>
+      <ul>
+        <li>Centralized issue reporting & tracking</li>
+        <li>Verified complaint IDs</li>
+        <li>Live results & transparency hub</li>
+        <li>Voter verification tool</li>
+        <li>Digital reporting channels</li>
+      </ul>
+    </section>
+  )
+}
